@@ -28,7 +28,6 @@ export const socket = (server) => {
       wss.clients.forEach(function each(client) {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
           client.send(data, { binary: isBinary })
-          // console.log('data', data);
         }
       })
     })
