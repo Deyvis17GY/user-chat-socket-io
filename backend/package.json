@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Api Crud",
+  "main": "app.js",
+  "author": "Deyvis Mariños",
+  "license": "MIT",
+  "type": "module",
+  "private": false,
+  "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "aws-sdk": "2.938.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "mongoose": "^6.2.5",
+    "multer": "^1.4.4",
+    "multer-s3": "^2.10.0",
+    "nodemon": "^2.0.15",
+    "ws": "^8.5.0"
+  },
+  "scripts": {
+    "dev": "nodemon src/app.js --exec babel-node",
+    "start": "node src/app.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.5",
+    "@babel/node": "^7.16.8",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11"
+  }
+}
