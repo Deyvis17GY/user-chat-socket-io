@@ -1,6 +1,6 @@
 # User Management and Websockets
 
-rest service for user management and managed from the frontend through api
+web application for user management and frontend with react to bring the data through the use of api
 
 ## Demo
 
@@ -14,9 +14,9 @@ https://admin-users-ws.netlify.app/
 
 ## Tech Stack
 
-**Client:** ReactJs, WebSockets, css-modules
+**Client:** ReactJs, css-modules
 
-**Server:** Node, Express, MongoDB, AWS-S3
+**Server:** Node, Express,WebSockets, MongoDB, AWS-S3
 
 ## Run Locally
 
