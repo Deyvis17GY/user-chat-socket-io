@@ -18,7 +18,6 @@ export const getUserById = async (id) => {
     const response = await baseHttps.get(`/api/${id}`);
     const { data } = await response;
 
-    // add key dat
     return { data };
   } catch (error) {
     console.error(error);

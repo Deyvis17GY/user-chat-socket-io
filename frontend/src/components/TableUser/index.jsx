@@ -1,7 +1,7 @@
 import { Button, Card, Modal, Popconfirm, Space, Table } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useEffect, useState } from 'react';
-import { getUsers, getUserById } from '@src/services/api.js';
+import { getUsers } from '@src/services/api.js';
 import { baseHttps } from '@src/utils/api';
 import { ChatUser } from '../ChatUser';
 import styles from './styles.module.css';
@@ -75,6 +75,16 @@ export const TableUSer = () => {
   const [dataUserChat, setDataUserChat] = useState([]);
   const [isEmptyValues, setIsEmptyValues] = useState(false);
 
+  const getDataUsers = async () => {
+    try {
+      const data = await getUsers();
+      if (!data) return;
+      setDataUser(data.getListUsers);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const onChangeFile = (event) => {
     setFile(event.target.files[0]);
   };
@@ -89,23 +99,22 @@ export const TableUSer = () => {
   const handleDelete = async (id) => {
     try {
       await baseHttps.delete(`/api/${id}`);
-      getDataUser();
+      getDataUsers();
       pushNotify({ title: 'User deleted successfully', status: 'error' });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       pushNotify({ title: 'Failed to delete', status: 'error' });
     }
   };
 
   const handleEdit = async (id) => {
-    setIsEdit(true);
-    const { data } = await getUserById(id);
+    const userById = dataUser.find((user) => user._id === id);
     setValues({
-      name: data.name,
-      email: data.email,
-      content: data.content
+      name: userById.name,
+      email: userById.email,
+      content: userById.content
     });
-
+    setIsEdit(true);
     setUserId(id);
     setIsModal(true);
   };
@@ -117,24 +126,18 @@ export const TableUSer = () => {
   };
 
   const handleProfile = async (id) => {
-    const { data } = await getUserById(id);
-    setOnlyUser({ ...data });
-    setShowProfile(true);
-  };
-
-  const getDataUser = async () => {
     try {
-      const data = await getUsers();
-      if (!data) return;
-      setDataUser(data.getListUsers);
+      const userProfileById = dataUser.find((user) => user._id === id);
+      setOnlyUser({ ...userProfileById });
+      setShowProfile(true);
     } catch (error) {
       console.error(error);
     }
   };
 
   const showChatContainer = async (id) => {
-    const { data } = await getUserById(id);
-    setDataUserChat({ ...data });
+    const userChatById = dataUser.find((item) => item._id === id);
+    setDataUserChat({ ...userChatById });
     setShowChat(true);
   };
 
@@ -142,14 +145,14 @@ export const TableUSer = () => {
     ev.preventDefault();
     setIsLoadingUpload(true);
     try {
+      const formData = new FormData();
+
+      formData.append('name', values.name);
+      formData.append('email', values.email);
+      formData.append('content', values.content);
+      formData.append('image', file);
+
       if (!isEdit) {
-        const formData = new FormData();
-
-        formData.append('name', values.name);
-        formData.append('email', values.email);
-        formData.append('content', values.content);
-        formData.append('image', file);
-
         if (!values.name || !values.email || !values.content) {
           setIsEmptyValues(true);
           return;
@@ -166,13 +169,6 @@ export const TableUSer = () => {
           pushNotify({ title: 'User created successfully' });
         }
       } else {
-        const formData = new FormData();
-
-        formData.append('name', values.name);
-        formData.append('email', values.email);
-        formData.append('content', values.content);
-        formData.append('image', file);
-
         const upload = await baseHttps.put(`/api/${userId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -191,7 +187,7 @@ export const TableUSer = () => {
   };
 
   const resetForm = () => {
-    getDataUser();
+    getDataUsers();
     cleanValues();
     setIsModal(false);
     setIsEdit(false);
@@ -221,7 +217,7 @@ export const TableUSer = () => {
   };
 
   useEffect(() => {
-    getDataUser();
+    getDataUsers();
   }, []);
 
   return (
@@ -295,7 +291,12 @@ export const TableUSer = () => {
             hoverable
             style={{ width: 240 }}
             loading={!onlyUser.image}
-            cover={<img alt="example" src={onlyUser.image} />}>
+            cover={
+              <img
+                alt="example"
+                src={onlyUser.images ? onlyUser.images : 'https://picsum.photos/200'}
+              />
+            }>
             <Meta title={onlyUser.name} description={onlyUser.content} />
           </Card>
         </Modal>

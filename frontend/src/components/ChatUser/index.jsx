@@ -33,6 +33,7 @@ export const ChatUser = ({ showChat, userName }) => {
 
   useEffect(() => {
     getMessages();
+    console.debug('URL-WS', URL);
   }, []);
 
   useEffect(() => {
