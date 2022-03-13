@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { getAllMessages } from '../../services/api';
 import { formatDate } from '../../utils/formatDate';
 import styles from './chat.module.css';
-const URL = import.meta.env.VITE_WS_URL;
-export const ChatUser = ({ showChat, userName }) => {
+export const ChatUser = ({ showChat, userName, URL }) => {
   const [user, setUser] = useState('John');
   const [message, setMessage] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -15,10 +14,10 @@ export const ChatUser = ({ showChat, userName }) => {
   });
 
   const getMessages = async () => {
-    const { data } = await getAllMessages();
+    const data = await getAllMessages();
     if (!data) return;
 
-    setMessages(data);
+    setMessages(data.data);
   };
 
   const formatHour = () => {
