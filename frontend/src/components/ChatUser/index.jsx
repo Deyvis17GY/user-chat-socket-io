@@ -5,9 +5,10 @@ import { formatDate } from '@src/utils/formatDate';
 import PropTypes from 'prop-types';
 import styles from './chat.module.css';
 
-const URL = import.meta.env.VITE_WS_URL;
+const URI_WS = import.meta.env.VITE_WS_URL;
 
 export const ChatUser = ({ showChat, userName }) => {
+  const URL = URI_WS ? URI_WS : 'wss://backend-ws-d.herokuapp.com/api';
   const [message, setMessage] = useState([]);
   const [messages, setMessages] = useState([]);
   const [ws, setWs] = useState(new WebSocket(URL));
@@ -33,7 +34,6 @@ export const ChatUser = ({ showChat, userName }) => {
 
   useEffect(() => {
     getMessages();
-    console.debug('URL-WS', URL);
   }, []);
 
   useEffect(() => {

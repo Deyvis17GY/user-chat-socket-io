@@ -64,7 +64,7 @@ export const TableUSer = () => {
     name: '',
     email: '',
     content: '',
-    img: ''
+    image: ''
   });
 
   const [showChat, setShowChat] = useState(false);
@@ -294,7 +294,8 @@ export const TableUSer = () => {
             cover={
               <img
                 alt="example"
-                src={onlyUser.images ? onlyUser.images : 'https://picsum.photos/200'}
+                src={onlyUser.image ? onlyUser.image : 'https://picsum.photos/200'}
+                onError={(e) => (e.target.src = 'https://picsum.photos/200')}
               />
             }>
             <Meta title={onlyUser.name} description={onlyUser.content} />
