@@ -11,19 +11,23 @@ export const socket = (server) => {
   wss.on("connection", function connection(ws) {
     console.log("A new client Connected!")
     ws.on("message", async function incoming(data, isBinary) {
-      const newData = JSON.parse(data)
-      const newMsg = new chatSchema({
-        user: newData.user,
-        message: newData.message,
-        hour: format(new Date(), "en-ES", {
-          hour: "numeric",
-          minute: "numeric",
-          second: "numeric",
-          hour12: true
+      try {
+        const newData = JSON.parse(data)
+        const newMsg = new chatSchema({
+          user: newData.user,
+          message: newData.message,
+          hour: format(new Date(), "en-ES", {
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: true
+          })
         })
-      })
-      console.log(newMsg)
-      await newMsg.save()
+        console.log(newMsg)
+        await newMsg.save()
+      } catch (error) {
+        console.error(error)
+      }
       console.log("received: %s", data)
       wss.clients.forEach(function each(client) {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
