@@ -22,6 +22,7 @@
     "eslint-plugin-react": "^7.29.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "simple-notify": "^0.5.4",
     "vite-react-jsx": "^1.1.2",
     "wouter": "^2.8.0-alpha.2",
     "ws": "^8.5.0"
