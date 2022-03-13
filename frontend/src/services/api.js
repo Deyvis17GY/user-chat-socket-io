@@ -7,7 +7,7 @@ export const getUsers = async () => {
 
     // add key data
     const getListUsers = data.map((item, index) => ({ ...item, key: index }));
-    return [getListUsers];
+    return { getListUsers };
   } catch (error) {
     console.error(error);
   }
