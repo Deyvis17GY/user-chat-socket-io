@@ -9,8 +9,8 @@ https://admin-users-ws.netlify.app/
 ## Tools
 
 - [Digital Ocean](https://www.digitalocean.com/) - Image storage
-- [Heroku](https://dashboard.heroku.com/) - Deployment backend
-- [Netlify](https://www.netlify.com/) - Deployment frontend
+- [Heroku](https://dashboard.heroku.com/) - Backend deployment
+- [Netlify](https://www.netlify.com/) - Frontend deployment
 
 ## Tech Stack
 
