@@ -5,7 +5,8 @@ import { getUsers, getUserById } from '@src/services/api.js';
 import { baseHttps } from '../../utils/api';
 import { ChatUser } from '../ChatUser';
 import styles from './styles.module.css';
-
+import clsx from 'clsx';
+const URL = import.meta.env.VITE_WS_URL;
 export const TableUSer = () => {
   const columns = [
     {
@@ -48,6 +49,7 @@ export const TableUSer = () => {
   const [dataUser, setDataUser] = useState([]);
   const [userId, setUserId] = useState('');
   const [isEdit, setIsEdit] = useState(false);
+  const [isLoadingUpload, setIsLoadingUpload] = useState(false);
 
   const [isModal, setIsModal] = useState(false);
   const [values, setValues] = useState({
@@ -70,6 +72,7 @@ export const TableUSer = () => {
 
   const [showProfile, setShowProfile] = useState(false);
   const [dataUserChat, setDataUserChat] = useState([]);
+  const [isEmptyValues, setIsEmptyValues] = useState(false);
 
   const onChangeFile = (event) => {
     setFile(event.target.files[0]);
@@ -102,6 +105,12 @@ export const TableUSer = () => {
 
   const handleModalCreate = () => {
     setIsModal(!isModal);
+    setIsEdit(false);
+    setValues({
+      name: '',
+      email: '',
+      content: ''
+    });
   };
 
   const handleProfile = async (id) => {
@@ -112,9 +121,9 @@ export const TableUSer = () => {
 
   const getDataUser = async () => {
     try {
-      getUsers().then(([getListUsers]) => {
-        setDataUser(getListUsers);
-      });
+      const data = await getUsers();
+      if (!data) return;
+      setDataUser(data.getListUsers);
     } catch (error) {
       console.error(error);
     }
@@ -128,6 +137,7 @@ export const TableUSer = () => {
 
   const onRegisterUpdate = async (ev) => {
     ev.preventDefault();
+    setIsLoadingUpload(true);
     try {
       if (!isEdit) {
         const formData = new FormData();
@@ -136,6 +146,11 @@ export const TableUSer = () => {
         formData.append('email', values.email);
         formData.append('content', values.content);
         formData.append('image', file);
+
+        if (!values.name || !values.email || !values.content) {
+          setIsEmptyValues(true);
+          return;
+        }
 
         const response = await baseHttps.post(`/api/`, formData, {
           headers: {
@@ -178,7 +193,22 @@ export const TableUSer = () => {
     });
     setIsModal(false);
     setIsEdit(false);
+    setIsLoadingUpload(false);
+    setFile(null);
   };
+
+  const classBtnUpload = clsx(styles.btnUpload, {
+    [styles.btnUploadActive]: file,
+    [styles.btnUploadDisabled]: !file,
+    [styles.isEmpty]: !isEdit
+      ? values.name === '' || values.email === '' || values.content === '' || !file
+      : values.name === '' || values.email === '' || values.content === '',
+    [styles.isLoadingButton]: isLoadingUpload
+  });
+
+  const classInputEmpty = clsx(styles.inputClass, {
+    [styles.isEmptyInput]: isEmptyValues
+  });
 
   useEffect(() => {
     getDataUser();
@@ -197,10 +227,10 @@ export const TableUSer = () => {
             visible={isModal}
             onOk={handleModalCreate}
             onCancel={handleModalCreate}>
-            <form onSubmit={onRegisterUpdate}>
+            <form onSubmit={onRegisterUpdate} className={styles.formCreateEdit}>
               <input
                 type="text"
-                className="form-control  my-3 rounded-0"
+                className={classInputEmpty}
                 placeholder="Write a name"
                 name="name"
                 value={values.name}
@@ -208,7 +238,7 @@ export const TableUSer = () => {
               />
               <input
                 type="text"
-                className="form-control  my-3 rounded-0"
+                className={classInputEmpty}
                 placeholder="Write a email"
                 name="email"
                 value={values.email}
@@ -216,7 +246,7 @@ export const TableUSer = () => {
               />
               <input
                 type="text"
-                className="form-control  my-3 rounded-0"
+                className={classInputEmpty}
                 placeholder="Write address"
                 name="content"
                 value={values.content}
@@ -224,14 +254,12 @@ export const TableUSer = () => {
               />
               <input
                 type="file"
-                className="form-control text-light rounded-0"
+                className="form-control rounded-0"
                 onChange={onChangeFile}
                 accept="image/*"
               />
               <div className="my-3">
-                <button className="btn btn-success rounded-0 w-100">
-                  {isEdit ? 'Edit' : 'Update'}
-                </button>
+                <button className={classBtnUpload}>{isEdit ? 'Edit' : 'Create'}</button>
               </div>
             </form>
           </Modal>
@@ -245,7 +273,7 @@ export const TableUSer = () => {
         </div>
 
         <div className="col-md-3">
-          <ChatUser showChat={showChat} userName={dataUserChat.name} />
+          <ChatUser showChat={showChat} userName={dataUserChat.name} URL={URL} />
         </div>
         <Modal
           visible={showProfile}
