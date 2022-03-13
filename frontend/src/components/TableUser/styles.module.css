@@ -2,3 +2,47 @@
   min-height: 400px;
   width: 100%;
 }
+
+.formCreateEdit {
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.isEmpty {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.btnUpload {
+  background-color: #1890ff;
+  border: none;
+  color: #fff;
+  margin: 0 5px;
+  outline: none;
+  padding: 10px;
+  width: 100%;
+}
+
+.isEmptyInput {
+  border: 1px solid red !important;
+}
+
+.inputClass {
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.inputClass:focus {
+  box-shadow: 0 0 5pt 2pt #188fff70;
+  outline-width: 0px;
+}
+
+.isLoadingButton {
+  opacity: 0.7;
+  pointer-events: none;
+}
