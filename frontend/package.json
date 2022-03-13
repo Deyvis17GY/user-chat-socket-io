@@ -10,12 +10,15 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
-    "deploy:netlify": "yarn vite build && netlify deploy --dir=dist --prod"
+    "deploy:netlify": "yarn vite build && netlify deploy --dir=dist --prod",
+    "dev:local": "env-cmd -e LOCAL yarn dev",
+    "dev:prod": "env-cmd -e PRODUCTION yarn dev"
   },
   "dependencies": {
     "antd": "^4.19.1",
     "axios": "^0.26.1",
     "clsx": "^1.1.1",
+    "env-cmd": "^10.1.0",
     "eslint-plugin-react": "^7.29.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
