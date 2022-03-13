@@ -1,10 +1,13 @@
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
-import { getAllMessages } from '../../services/api';
-import { formatDate } from '../../utils/formatDate';
+import { getAllMessages } from '@src/services/api';
+import { formatDate } from '@src/utils/formatDate';
+import PropTypes from 'prop-types';
 import styles from './chat.module.css';
-export const ChatUser = ({ showChat, userName, URL }) => {
-  const [user, setUser] = useState('John');
+
+const URL = import.meta.env.VITE_WS_URL;
+
+export const ChatUser = ({ showChat, userName }) => {
   const [message, setMessage] = useState([]);
   const [messages, setMessages] = useState([]);
   const [ws, setWs] = useState(new WebSocket(URL));
@@ -16,7 +19,6 @@ export const ChatUser = ({ showChat, userName, URL }) => {
   const getMessages = async () => {
     const data = await getAllMessages();
     if (!data) return;
-
     setMessages(data.data);
   };
 
@@ -38,7 +40,7 @@ export const ChatUser = ({ showChat, userName, URL }) => {
       console.log('WebSocket Connected');
     };
 
-    ws.onmessage = ({ data }, isBinary) => {
+    ws.onmessage = ({ data }) => {
       const message = JSON.parse(data);
       setMessages([message, ...messages]);
     };
@@ -50,7 +52,7 @@ export const ChatUser = ({ showChat, userName, URL }) => {
       };
     };
   }, [ws.onmessage, ws.onopen, ws.onclose, messages]);
-  const submitMessage = (usr, msg) => {
+  const submitMessage = (msg) => {
     const message = { user: userName, message: msg };
     ws.send(JSON.stringify(message));
     setMessages([message, ...messages]);
@@ -77,7 +79,7 @@ export const ChatUser = ({ showChat, userName, URL }) => {
           action=""
           onSubmit={(e) => {
             e.preventDefault();
-            submitMessage(user, message);
+            submitMessage(message);
             setMessage([]);
           }}
           className={styles.form}>
@@ -97,4 +99,9 @@ export const ChatUser = ({ showChat, userName, URL }) => {
   } else {
     return null;
   }
+};
+
+ChatUser.propTypes = {
+  showChat: PropTypes.bool.isRequired,
+  userName: PropTypes.string
 };

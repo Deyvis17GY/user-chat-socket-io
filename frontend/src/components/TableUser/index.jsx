@@ -2,11 +2,12 @@ import { Button, Card, Modal, Popconfirm, Space, Table } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useEffect, useState } from 'react';
 import { getUsers, getUserById } from '@src/services/api.js';
-import { baseHttps } from '../../utils/api';
+import { baseHttps } from '@src/utils/api';
 import { ChatUser } from '../ChatUser';
 import styles from './styles.module.css';
 import clsx from 'clsx';
-const URL = import.meta.env.VITE_WS_URL;
+import { pushNotify } from '../../utils/notify';
+
 export const TableUSer = () => {
   const columns = [
     {
@@ -86,8 +87,14 @@ export const TableUSer = () => {
   };
 
   const handleDelete = async (id) => {
-    await baseHttps.delete(`/api/${id}`);
-    getDataUser();
+    try {
+      await baseHttps.delete(`/api/${id}`);
+      getDataUser();
+      pushNotify({ title: 'User deleted successfully', status: 'error' });
+    } catch (error) {
+      console.log(error);
+      pushNotify({ title: 'Failed to delete', status: 'error' });
+    }
   };
 
   const handleEdit = async (id) => {
@@ -106,11 +113,7 @@ export const TableUSer = () => {
   const handleModalCreate = () => {
     setIsModal(!isModal);
     setIsEdit(false);
-    setValues({
-      name: '',
-      email: '',
-      content: ''
-    });
+    cleanValues();
   };
 
   const handleProfile = async (id) => {
@@ -160,6 +163,7 @@ export const TableUSer = () => {
 
         if (response.status === 200) {
           resetForm();
+          pushNotify({ title: 'User created successfully' });
         }
       } else {
         const formData = new FormData();
@@ -176,21 +180,19 @@ export const TableUSer = () => {
         });
 
         if (upload.status === 200) {
+          pushNotify({ title: 'successful edit' });
           resetForm();
         }
       }
     } catch (error) {
       console.error(error);
+      pushNotify({ title: 'Upload Failed', status: 'error' });
     }
   };
 
   const resetForm = () => {
     getDataUser();
-    setValues({
-      name: '',
-      email: '',
-      content: ''
-    });
+    cleanValues();
     setIsModal(false);
     setIsEdit(false);
     setIsLoadingUpload(false);
@@ -201,14 +203,22 @@ export const TableUSer = () => {
     [styles.btnUploadActive]: file,
     [styles.btnUploadDisabled]: !file,
     [styles.isEmpty]: !isEdit
-      ? values.name === '' || values.email === '' || values.content === '' || !file
-      : values.name === '' || values.email === '' || values.content === '',
+      ? !values.name || !values.email || !values.content || !file
+      : !values.name || !values.email || !values.content,
     [styles.isLoadingButton]: isLoadingUpload
   });
 
   const classInputEmpty = clsx(styles.inputClass, {
     [styles.isEmptyInput]: isEmptyValues
   });
+
+  const cleanValues = () => {
+    return setValues({
+      name: '',
+      email: '',
+      content: ''
+    });
+  };
 
   useEffect(() => {
     getDataUser();
@@ -273,7 +283,7 @@ export const TableUSer = () => {
         </div>
 
         <div className="col-md-3">
-          <ChatUser showChat={showChat} userName={dataUserChat.name} URL={URL} />
+          <ChatUser showChat={showChat} userName={dataUserChat.name} />
         </div>
         <Modal
           visible={showProfile}
