@@ -4,24 +4,28 @@ import { getAllMessages } from '@src/services/api';
 import { formatDate } from '@src/utils/formatDate';
 import PropTypes from 'prop-types';
 import styles from './chat.module.css';
-
-const URI_WS = import.meta.env.VITE_WS_URL;
+import { useWebSocket } from '@src/hooks/useWebSocket';
+import favicon from '../../assets/chat.png';
 
 export const ChatUser = ({ showChat, userName }) => {
-  const URL = URI_WS ? URI_WS : 'wss://backend-ws-d.herokuapp.com/api';
   const [message, setMessage] = useState([]);
+  const { ws } = useWebSocket();
   const [messages, setMessages] = useState([]);
-  const [ws, setWs] = useState(new WebSocket(URL));
 
   const isDisabled = clsx(styles.send, {
     [styles.sendDisabled]: !message.length
   });
 
   const getMessages = async () => {
+    if (!showChat) return;
     const data = await getAllMessages();
     if (!data) return;
     setMessages(data.data);
   };
+
+  useEffect(() => {
+    getMessages();
+  }, [showChat]);
 
   const formatHour = () => {
     return formatDate(new Date(), 'en-ES', {
@@ -32,30 +36,40 @@ export const ChatUser = ({ showChat, userName }) => {
     });
   };
 
-  useEffect(() => {
-    getMessages();
-  }, []);
-
-  useEffect(() => {
-    ws.onopen = () => {
-      console.log('WebSocket Connected');
+  const notifyMe = ({ user, message }) => {
+    const options = {
+      body: message,
+      icon: favicon
     };
+    if (!('Notification' in window)) {
+      console.error('This browser does not support desktop notification');
+    } else if (Notification.permission === 'granted') {
+      new Notification(user, options);
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission(function (permission) {
+        if (permission === 'granted') {
+          new Notification(user, options);
+        }
+      });
+    }
+  };
 
-    ws.onmessage = ({ data }) => {
-      const message = JSON.parse(data);
-      setMessages([message, ...messages]);
-    };
-
-    return () => {
-      ws.onclose = () => {
-        console.log('WebSocket Disconnected');
-        setWs(new WebSocket(URL));
+  useEffect(() => {
+    if (ws.current) {
+      ws.current.onmessage = ({ data }) => {
+        const message = JSON.parse(data);
+        const { type, user } = message;
+        if (type === 'chat') {
+          notifyMe({ user, message: message.message });
+          setMessages([...messages, message]);
+        }
       };
-    };
-  }, [ws.onmessage, ws.onopen, ws.onclose, messages]);
+    }
+  }, [messages]);
+
   const submitMessage = (msg) => {
-    const message = { user: userName, message: msg };
-    ws.send(JSON.stringify(message));
+    const message = { type: 'chat', user: userName, message: msg };
+    ws.current.send(JSON.stringify(message));
     setMessages([message, ...messages]);
   };
 
@@ -69,7 +83,7 @@ export const ChatUser = ({ showChat, userName }) => {
             <li key={index}>
               <span className={styles.messageContent}>
                 <b>{message.user}:</b>
-                <em>{message.message}</em>
+                <em className={styles.messageEmit}>{message.message}</em>
               </span>
               <span className={styles.hour}>{message.hour || formatHour()}</span>
             </li>
