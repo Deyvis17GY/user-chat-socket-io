@@ -6,7 +6,8 @@ import { baseHttps } from '@src/utils/api';
 import { ChatUser } from '../ChatUser';
 import styles from './styles.module.css';
 import clsx from 'clsx';
-import { pushNotify } from '../../utils/notify';
+import { pushNotify } from '@src/utils/notify';
+import { useWebSocket } from '@src/hooks/useWebSocket';
 
 export const TableUSer = () => {
   const columns = [
@@ -75,6 +76,8 @@ export const TableUSer = () => {
   const [dataUserChat, setDataUserChat] = useState([]);
   const [isEmptyValues, setIsEmptyValues] = useState(false);
 
+  const { ws } = useWebSocket();
+
   const getDataUsers = async () => {
     try {
       const data = await getUsers();
@@ -98,9 +101,13 @@ export const TableUSer = () => {
 
   const handleDelete = async (id) => {
     try {
+      const userByIdLocal = userDataLocalById(id);
       await baseHttps.delete(`/api/${id}`);
       getDataUsers();
-      pushNotify({ title: 'User deleted successfully', status: 'error' });
+      pushNotify({ title: `User ${userByIdLocal.name} deleted successfully`, status: 'error' });
+      if (ws.current) {
+        ws.current.send(JSON.stringify({ type: 'delete', id }));
+      }
     } catch (error) {
       console.error(error);
       pushNotify({ title: 'Failed to delete', status: 'error' });
@@ -108,7 +115,7 @@ export const TableUSer = () => {
   };
 
   const handleEdit = async (id) => {
-    const userById = dataUser.find((user) => user._id === id);
+    const userById = userDataLocalById(id);
     setValues({
       name: userById.name,
       email: userById.email,
@@ -127,7 +134,7 @@ export const TableUSer = () => {
 
   const handleProfile = async (id) => {
     try {
-      const userProfileById = dataUser.find((user) => user._id === id);
+      const userProfileById = userDataLocalById(id);
       setOnlyUser({ ...userProfileById });
       setShowProfile(true);
     } catch (error) {
@@ -136,7 +143,7 @@ export const TableUSer = () => {
   };
 
   const showChatContainer = async (id) => {
-    const userChatById = dataUser.find((item) => item._id === id);
+    const userChatById = userDataLocalById(id);
     setDataUserChat({ ...userChatById });
     setShowChat(true);
   };
@@ -158,7 +165,7 @@ export const TableUSer = () => {
           return;
         }
 
-        const response = await baseHttps.post(`/api/`, formData, {
+        const response = await baseHttps.post(`/api`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -167,17 +174,29 @@ export const TableUSer = () => {
         if (response.status === 200) {
           resetForm();
           pushNotify({ title: 'User created successfully' });
+          if (ws.current) {
+            const { name, _id } = response.data;
+            ws.current.send(
+              JSON.stringify({ type: 'create', message: `user ${name} create`, id: _id })
+            );
+          }
         }
       } else {
-        const upload = await baseHttps.put(`/api/${userId}`, formData, {
+        const edit = await baseHttps.put(`/api/${userId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
 
-        if (upload.status === 200) {
+        if (edit.status === 200) {
           pushNotify({ title: 'successful edit' });
           resetForm();
+          if (ws.current) {
+            const { name, _id } = edit.data;
+            ws.current.send(
+              JSON.stringify({ type: 'edit', message: `user ${name} edited`, id: _id })
+            );
+          }
         }
       }
     } catch (error) {
@@ -192,7 +211,6 @@ export const TableUSer = () => {
     setIsModal(false);
     setIsEdit(false);
     setIsLoadingUpload(false);
-    setFile(null);
   };
 
   const classBtnUpload = clsx(styles.btnUpload, {
@@ -216,8 +234,41 @@ export const TableUSer = () => {
     });
   };
 
+  const userDataLocalById = (id) => {
+    if (!dataUser) return;
+    return dataUser.find((user) => user._id === id);
+  };
+
+  const notifyMe = () => {
+    if (!('Notification' in window)) {
+      alert('This browser does not support desktop notification');
+    } else if (Notification.permission === 'granted') {
+      new Notification('Hi there!');
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission(function (permission) {
+        if (permission === 'granted') {
+          new Notification('Hi there!');
+        }
+      });
+    }
+  };
+
   useEffect(() => {
     getDataUsers();
+    if (ws.current) {
+      ws.current.onmessage = ({ data }) => {
+        const { type } = JSON.parse(data);
+
+        if (type === 'create') {
+          getDataUsers();
+        } else if (type === 'edit') {
+          getDataUsers();
+        } else if (type === 'delete') {
+          getDataUsers();
+          pushNotify({ title: 'User deleted successfully', status: 'error' });
+        }
+      };
+    }
   }, []);
 
   return (
@@ -301,6 +352,7 @@ export const TableUSer = () => {
             <Meta title={onlyUser.name} description={onlyUser.content} />
           </Card>
         </Modal>
+        <button onClick={notifyMe}>Notificacion</button>
       </div>
     </div>
   );
