@@ -12,19 +12,21 @@ export const socket = (server) => {
     console.log("A new client Connected!")
     ws.on("message", async function incoming(data, isBinary) {
       try {
-        const newData = JSON.parse(data)
-        const newMsg = new chatSchema({
-          user: newData.user,
-          message: newData.message,
-          hour: format(new Date(), "en-ES", {
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: true
+        const { type } = JSON.parse(data)
+        if (type === "chat") {
+          const newData = JSON.parse(data)
+          const newMsg = new chatSchema({
+            user: newData.user,
+            message: newData.message,
+            hour: format(new Date(), "en-ES", {
+              hour: "numeric",
+              minute: "numeric",
+              second: "numeric",
+              hour12: true
+            })
           })
-        })
-        console.log(newMsg)
-        await newMsg.save()
+          await newMsg.save()
+        }
       } catch (error) {
         console.error(error)
       }
