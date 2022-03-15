@@ -239,20 +239,6 @@ export const TableUSer = () => {
     return dataUser.find((user) => user._id === id);
   };
 
-  const notifyMe = () => {
-    if (!('Notification' in window)) {
-      alert('This browser does not support desktop notification');
-    } else if (Notification.permission === 'granted') {
-      new Notification('Hi there!');
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission(function (permission) {
-        if (permission === 'granted') {
-          new Notification('Hi there!');
-        }
-      });
-    }
-  };
-
   useEffect(() => {
     getDataUsers();
     if (ws.current) {
@@ -352,7 +338,6 @@ export const TableUSer = () => {
             <Meta title={onlyUser.name} description={onlyUser.content} />
           </Card>
         </Modal>
-        <button onClick={notifyMe}>Notificacion</button>
       </div>
     </div>
   );
